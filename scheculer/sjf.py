@@ -9,7 +9,7 @@ class ShortestJobFirst(Scheduler):
         index = 0
         queue = [self._processes[index]]
         data = {}
-        tmp_processes = sorted(self._processes[index+1:], key = lambda process: process.burst_time)
+        not_ready_processes = sorted(self._processes[index+1:], key = lambda process: process.burst_time)
         time = self._processes[index].arrival_time
         num_of_processes = len(self._processes)
         while(index < num_of_processes):
@@ -24,10 +24,10 @@ class ShortestJobFirst(Scheduler):
 
             index += 1
 
-            for process in tmp_processes.copy():
-                if process.arrival_time <= time:
+            for process in not_ready_processes.copy():
+                if process.arrival_time <= time: # is ready
                     queue.append(process)
-                    tmp_processes.remove(process)
+                    not_ready_processes.remove(process)
             
         return queue, data
 

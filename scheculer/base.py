@@ -23,7 +23,7 @@ class Process:
 
 class Scheduler:
     def __init__(self, processes: list[Process]) -> None:
-        self._processes = processes
+        self._processes = sorted(processes, key = lambda process: process.arrival_time)
         pass
 
     @classmethod
