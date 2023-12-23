@@ -15,4 +15,4 @@ print("============= list process =============")
 print(sjf.processes)
 
 print("\n============= result with sjf algothrim =============")
-print(sjf.infor())
+print(sjf._gantt())

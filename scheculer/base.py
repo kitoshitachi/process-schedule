@@ -24,6 +24,7 @@ class Process:
 class Scheduler:
     def __init__(self, processes: list[Process]) -> None:
         self._processes = sorted(processes, key = lambda process: process.arrival_time)
+        self._sum_burst_time = None
         pass
 
     @classmethod
@@ -33,9 +34,19 @@ class Scheduler:
         return cls(processes)
 
     @property
+    def pids(self):
+        return tuple(range(len(self._processes)))
+
+    @property
     def processes(self):
         return pd.DataFrame(process.__dict__ for process in self._processes).to_markdown(index=False)
 
+    @property
+    def sum_burst_time(self):
+        if self._sum_burst_time is None:
+            self._sum_burst_time = sum(process.burst_time for process in self._processes)
+        
+        return self._sum_burst_time
 
     def gantt(self):
         raise NotImplementedError

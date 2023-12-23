@@ -1,45 +1,31 @@
+import pandas as pd
 
-from .base import Scheduler
+from .base import Process, Scheduler
 
 class ShortestRemainTime(Scheduler):
+
+    @staticmethod
+    def _get_ready_process(not_ready_processes:list[Process], current_time:int):
+        '''
+        return the pid is ready at current time
+        '''
+        for process in not_ready_processes:
+            if process.arrival_time <= current_time:
+                yield process
+    
+
     def gantt(self):
-        current_index = 0 # alway lowest arrival time
-        queue = [self._processes[current_index]]
-        sum_burst_time_in_queue = self._processes[current_index].burst_time
-        time = self._processes[current_index].arrival_time
+
+        current_pid = 0 # alway lowest arrival time
+        next_pid = current_pid #if it still lowest burst time => still running to end 
+        ready_process = [self._processes[current_pid]]
+        not_ready_processes = self._processes[current_pid + 1:].copy()
+        sum_burst_time = self.sum_burst_time
+        current_time = ready_process[current_pid].arrival_time
         data:dict[str,dict] = {}
 
-        while(sum_burst_time_in_queue > 0): # still have process is running 
-
-            if 'first time' in data[queue[current_process].process_name]:
-                data[queue[current_process].process_name] = {'first time': time}
-                
-
-            for id, process in enumerate(queue):
-
-                if process.arrival_time > time: # not ready
-                    continue
-
-                if process.burst_time < queue[current_process].burst_time - process.arrival_time:
-
-                    #update
-                    time = process.arrival_time
-                    
-                    queue[current_process].burst_time -= time
-
-                    process.arrival_time = 0
-
-                    #run this process id because has burst time lowest
-                    current_process = id
-
-
-            time += current_process.burst_time
-            data[current_process.process_name]['exit time'] = time
-
-            index += 1
-
-            for process in tmp_processes.copy():
-                if process.arrival_time <= time:
-                    queue.append(process)
-                    tmp_processes.remove(process)
-        return 
+        while(sum_burst_time > 0): # still have process is running 
+            for process in self._get_ready_process(not_ready_processes, current_time)
+                pass
+            
+        return pd.DataFrame(data)
