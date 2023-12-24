@@ -19,12 +19,14 @@ class Process:
         return cls(process_name, arrival_time, burst_time)
     
     def __repr__(self) -> str:
-        return f"(pid: {self.process_name}, at: {self.arrival_time}, bt:{self.burst_time})"
+        return f"(process name: {self.process_name}, at: {self.arrival_time}, bt:{self.burst_time})"
 
 class Scheduler:
     def __init__(self, processes: list[Process]) -> None:
         self._processes = sorted(processes, key = lambda process: process.arrival_time)
         self._sum_burst_time = None
+        self._gantt = self.calculate_gantt()
+        self._infor = self.get_infor()
         pass
 
     @classmethod
@@ -39,7 +41,9 @@ class Scheduler:
 
     @property
     def processes(self):
-        return pd.DataFrame(process.__dict__ for process in self._processes).to_markdown(index=False)
+        df = pd.DataFrame(process.__dict__ for process in self._processes)
+        df.index.rename('pid', inplace=True)
+        return df
 
     @property
     def sum_burst_time(self):
@@ -48,8 +52,16 @@ class Scheduler:
         
         return self._sum_burst_time
 
+    @property
     def gantt(self):
-        raise NotImplementedError
+        return self._gantt.to_markdown(index=False)
 
+    @property
     def infor(self):
-        raise NotImplementedError 
+        return self._infor.to_markdown() 
+    
+    def calculate_gantt(self) -> pd.DataFrame:
+        raise NotImplementedError
+    
+    def get_infor(self) -> pd.DataFrame:
+        raise NotImplementedError
