@@ -15,4 +15,4 @@ print("============= list process =============")
 print(srt.processes)
 
 print("\n============= result with srt algothrim =============")
-print(srt.gantt())
+print(srt.calculate_gantt())
