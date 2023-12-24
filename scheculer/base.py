@@ -1,3 +1,6 @@
+from copy import deepcopy
+from typing import Iterable
+
 import pandas as pd
 
 
@@ -17,12 +20,12 @@ class Process:
         arrival_time = int(input(f"Enter arrival time of process P[{process_name}]: "))
         burst_time = int(input(f"Enter burst time of process P[{process_name}]: "))
         return cls(process_name, arrival_time, burst_time)
-    
+
     def __repr__(self) -> str:
         return f"(process name: {self.process_name}, at: {self.arrival_time}, bt:{self.burst_time})"
 
 class Scheduler:
-    def __init__(self, processes: list[Process]) -> None:
+    def __init__(self, processes: Iterable[Process]) -> None:
         self._processes = sorted(processes, key = lambda process: process.arrival_time)
         self._sum_burst_time = None
         self._gantt = self.calculate_gantt()
@@ -38,6 +41,7 @@ class Scheduler:
     @property
     def pids(self):
         return tuple(range(len(self._processes)))
+
 
     @property
     def processes(self):
@@ -59,6 +63,10 @@ class Scheduler:
     @property
     def infor(self):
         return self._infor.to_markdown() 
+    
+    @property
+    def deepcopy_processes(self):
+        return deepcopy(self._processes)
     
     def calculate_gantt(self) -> pd.DataFrame:
         raise NotImplementedError

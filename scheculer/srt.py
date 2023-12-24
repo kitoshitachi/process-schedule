@@ -1,81 +1,94 @@
-import copy
+from time import sleep
 import pandas as pd
 
-from .base import Scheduler
+from .base import Process, Scheduler
 
 class ShortestRemainTime(Scheduler):
 
-    def _get_ready_pid_from(self, not_ready_pids:list[int], time):
+    def get_not_ready_pids(self, processes:list[Process]):
+            for pid in self.pids:
+                if processes[pid].arrival_time != 0:
+                    yield pid
 
+    def _get_ready_from(self, processes:list[Process], time:int):
+        not_ready_pids = self.get_not_ready_pids(processes)
+        
         for pid in not_ready_pids:
-            if self._processes[pid].arrival_time <= time:
-                time = self._processes[pid].arrival_time
+            if processes[pid].arrival_time <= time:
                 yield pid
-    
+                time = processes[pid].arrival_time
+
+    def _find_pid_lowest_burst_time(self, processes:list[Process]):
+        def is_in_queue(process:Process):
+            
+            if process.arrival_time > 0: # not ready
+                return False
+            
+            if process.burst_time == 0: # finished
+                return False
+            
+            return True
+        
+        queue = [pid for pid in self.pids if is_in_queue(processes[pid])]
+        if queue:
+            return min(queue,  key=lambda pid: processes[pid].burst_time)
+            
 
     def calculate_gantt(self):
-        processes = copy.deepcopy(self._processes)
-        queue = []        
-        current_process = None
+        copy_processes = self.deepcopy_processes
+        current_pid = 0
         time_range = {
-            'start':0,
-            'end':0
+            'start':self._processes[current_pid].arrival_time,
+            'end':self._processes[current_pid].burst_time
         } 
-        data = []
+        gantt_data = []
 
         sum_burst_time = self.sum_burst_time
-        index = 0
-        for process in processes:
-            if not current_process:
-                current_process = process
-                time_range['start'] = 0
-                time_range['end'] = 0
-                continue
-            
-            min_burst_time = current_process.burst_time - (process.arrival_time - current_process.arrival_time)
-            while min_burst_time <= 0:
-                time_range['start'] = time_range['end']
-                time_range['end'] = process.arrival_time + min_burst_time
+
+        while(sum_burst_time > 0):
+            print(time_range)
+            print(copy_processes[current_pid])
+            print(gantt_data)
+            ready_pids = self._get_ready_from(copy_processes, time_range['end'])
+            next_pid = next(ready_pids, None)
+            if next_pid:
+                time_range['end'] = copy_processes[next_pid].arrival_time
+                copy_processes[current_pid].burst_time -= (copy_processes[next_pid].arrival_time - self._processes[current_pid].arrival_time) # remain time
                 
-                data.append({'name':current_process.process_name, 'start':time_range['start'], 'end': time_range['end']})
+                print(copy_processes)
+                print('=========================')
+                sum_burst_time -= copy_processes[next_pid].arrival_time # update progress bar
+                copy_processes[next_pid].arrival_time = 0 # set to ignore it from "_get_ready_pid_from" method
+                next_pid = None
+                for pid in ready_pids: # same arrival time then set it
+                    copy_processes[pid].arrival_time = 0
+            else: # run until finish
+                gantt_data.append({
+                    'pid':current_pid,
+                    'start': time_range['start'],
+                    'end': time_range['end'] + copy_processes[current_pid].burst_time,
+                })
+                sum_burst_time -= copy_processes[current_pid].burst_time
+                copy_processes[current_pid].burst_time = 0
 
-                if not queue:
-                    current_process = None
-                    break
-
-                current_process = min(queue, key=lambda x: x.burst_time)
-                queue.remove(current_process)
-                current_process.arrival_time = time_range['end']
-                min_burst_time = current_process.burst_time + min_burst_time
-
-            if not queue and current_process is None:
-                current_process = process
+                current_pid = self._find_pid_lowest_burst_time(copy_processes)
+                
+                time_range['start'] = time_range['end']
+                time_range['end'] += copy_processes[current_pid].burst_time
                 continue
 
-            if process.burst_time < min_burst_time:
-                current_process.burst_time = min_burst_time
-                if current_process.arrival_time != process.arrival_time:
-                    time_range['start'] = time_range['end']
-                    time_range['end'] = process.arrival_time
-                    data.append({'name':current_process.process_name, 'start':time_range['start'], 'end': time_range['end']})
-                                
-                queue.append(current_process)
-                current_process = process
-            else:
-                queue.append(process)
+            next_pid = self._find_pid_lowest_burst_time(copy_processes)
+            if next_pid and next_pid != current_pid:
+                gantt_data.append({
+                    'pid':current_pid,
+                    'start': time_range['start'],
+                    'end': time_range['end'],
+                })
+                current_pid = next_pid
+                time_range['start'] = time_range['end']
+                time_range['end'] += copy_processes[current_pid].burst_time
             
-        if current_process != None:
-            time_range['start'] = time_range['end']
-            time_range['end'] = time_range['end'] + current_process.burst_time
-            data.append({'name':current_process.process_name, 'start': time_range['start'], 'end': time_range['end']})
-        
-        sorted_queue = sorted(queue, key = lambda process: process.burst_time)
-        for process in sorted_queue:
-            time_range['start'] = time_range['end']
-            time_range['end'] = time_range['end'] + process.burst_time
-            data.append({'name':process.process_name, 'start': time_range['start'], 'end': time_range['end']})
-
-        return data
+        return gantt_data
 
     def get_infor(self):
         return
