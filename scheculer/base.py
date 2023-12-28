@@ -1,8 +1,6 @@
 from copy import deepcopy
 from typing import Iterable
-
 import pandas as pd
-
 
 class Process:
     process_name:str
@@ -21,13 +19,18 @@ class Process:
         burst_time = int(input(f"Enter burst time of process P[{process_name}]: "))
         return cls(process_name, arrival_time, burst_time)
 
+    def is_ready(self):
+        return self.arrival_time == 0
+        
+
     def __repr__(self) -> str:
         return f"(process name: {self.process_name}, at: {self.arrival_time}, bt:{self.burst_time})"
 
 class Scheduler:
     def __init__(self, processes: Iterable[Process]) -> None:
         self._processes = sorted(processes, key = lambda process: process.arrival_time)
-        self._sum_burst_time = None
+        self._pids = tuple(range(len(self._processes)))
+        self._sum_burst_time = sum(process.burst_time for process in self._processes)
         self._gantt = self.calculate_gantt()
         self._infor = self.get_infor()
         pass
@@ -40,7 +43,7 @@ class Scheduler:
 
     @property
     def pids(self):
-        return tuple(range(len(self._processes)))
+        return self._pids
 
 
     @property
@@ -50,15 +53,12 @@ class Scheduler:
         return df
 
     @property
-    def sum_burst_time(self):
-        if self._sum_burst_time is None:
-            self._sum_burst_time = sum(process.burst_time for process in self._processes)
-        
+    def sum_burst_time(self):        
         return self._sum_burst_time
 
     @property
     def gantt(self):
-        return self._gantt.to_markdown(index=False)
+        return self._gantt.to_markdown()
 
     @property
     def infor(self):

@@ -1,4 +1,6 @@
 
 from .base import *
-from .sjf import *
-from .srt import *
+from .shortest_job_first import *
+from .shortest_remain_time import *
+from .round_robin import *
+from .utils import *

@@ -12,8 +12,12 @@ sjf = SJF([
 
 # sjf = SJF.user_input()
 
+print("============= list process =============")
+print(sjf.processes)
+
 print("\n============= gantt with sjf algothrim =============")
 print(sjf.gantt)
+
 print("\n============= result with sjf algothrim =============")
 print(sjf.infor)
 

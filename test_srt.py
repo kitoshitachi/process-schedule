@@ -1,5 +1,5 @@
 
-from scheculer import ShortestRemainTime, Process
+from scheculer import Process, ShortestRemainTime
 
 srt = ShortestRemainTime([
     Process(1, 0, 12),
@@ -14,5 +14,8 @@ srt = ShortestRemainTime([
 print("============= list process =============")
 print(srt.processes)
 
+print("\n============= gantt with srt algothrim =============")
+print(srt.gantt)
+
 print("\n============= result with srt algothrim =============")
-srt.calculate_gantt()
+print(srt.infor)
